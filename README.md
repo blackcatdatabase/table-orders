@@ -2,7 +2,7 @@
 
 ![SQL](https://img.shields.io/badge/SQL-MySQL%208.0%2B-4479A1?logo=mysql&logoColor=white) ![License](https://img.shields.io/badge/license-BlackCat%20Proprietary-red) ![Status](https://img.shields.io/badge/status-stable-informational) ![Generated](https://img.shields.io/badge/generated-from%20schema--map-blue)
 
-> Schema package for table **orders** (repo: $slug).
+> Schema package for table **orders** (repo: `orders`).
 
 ## Files
 ```
@@ -45,7 +45,7 @@ mysql -h 127.0.0.1 -P 3307 -u root -proot app < schema/030_foreign_keys.sql
 | uuid_bin | BINARY(16) | YES | — |  |
 | public_order_no | VARCHAR(64) | YES | — |  |
 | user_id | BIGINT UNSIGNED | YES | — |  |
-| status | ENUM(''pending'',''paid'',''failed'',''cancelled'',''refunded'',''completed'') | NO | '' |  |
+| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | '' |  |
 | encrypted_customer_blob | LONGBLOB | YES | — |  |
 | encrypted_customer_blob_key_version | VARCHAR(64) | YES | — |  |
 | encryption_meta | JSON | YES | — |  |
@@ -65,24 +65,24 @@ mysql -h 127.0.0.1 -P 3307 -u root -proot app < schema/030_foreign_keys.sql
 ```mermaid
 erDiagram
   ORDERS {
-    BIGINT id PK
-    CHAR(36) uuid
-    BINARY(16) uuid_bin
-    VARCHAR(64) public_order_no
-    BIGINT user_id
-    ENUM(''pending'',''paid'',''failed'',''cancelled'',''refunded'',''completed'') status
-    LONGBLOB encrypted_customer_blob
-    VARCHAR(64) encrypted_customer_blob_key_version
+    INT id PK
+    VARCHAR uuid
+    BLOB uuid_bin
+    VARCHAR public_order_no
+    INT user_id
+    ENUM status
+    BLOB encrypted_customer_blob
+    VARCHAR encrypted_customer_blob_key_version
     JSON encryption_meta
-    CHAR(3) currency
+    VARCHAR currency
     JSON metadata
-    DECIMAL(12,2) subtotal
-    DECIMAL(12,2) discount_total
-    DECIMAL(12,2) tax_total
-    DECIMAL(12,2) total
-    VARCHAR(100) payment_method
-    DATETIME(6) created_at
-    DATETIME(6) updated_at
+    DECIMAL subtotal
+    DECIMAL discount_total
+    DECIMAL tax_total
+    DECIMAL total
+    VARCHAR payment_method
+    DATETIME created_at
+    DATETIME updated_at
   }
   ORDERS }o--|| USERS : "user_id"
 ```
