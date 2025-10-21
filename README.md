@@ -84,7 +84,7 @@ erDiagram
     DATETIME(6) created_at
     DATETIME(6) updated_at
   }
-  ORDERS }o--|| USERS : (user_id)
+  ORDERS }o--|| USERS : "user_id"
 ```
 
 ## Indexes
