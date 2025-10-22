@@ -11,7 +11,7 @@ Orders lifecycle, totals, and encrypted customer blob.
 | uuid_bin | BINARY(16) | YES | — | UUID binary form (unique). |  |
 | public_order_no | VARCHAR(64) | YES | — | Human-friendly order number. |  |
 | user_id | BIGINT UNSIGNED | YES | — | Customer (FK users.id), optional (guest checkout). |  |
-| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | ''pending'' | Order state. | enum: pending, paid, failed, cancelled, refunded, completed |
+| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | 'pending' | Order state. | enum: pending, paid, failed, cancelled, refunded, completed |
 | encrypted_customer_blob | LONGBLOB | YES | — | Encrypted PII/customer details. | PII: encrypted |
 | encrypted_customer_blob_key_version | VARCHAR(64) | YES | — | Key version of encrypted blob. |  |
 | encryption_meta | JSON | YES | — | JSON encryption metadata. |  |

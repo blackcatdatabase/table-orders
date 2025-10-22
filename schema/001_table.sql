@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS orders (
   uuid_bin BINARY(16) NULL,
   public_order_no VARCHAR(64) NULL,
   user_id BIGINT UNSIGNED NULL,
-  status ENUM(''pending'',''paid'',''failed'',''cancelled'',''refunded'',''completed'') NOT NULL DEFAULT ''pending'',
+  status ENUM('pending','paid','failed','cancelled','refunded','completed') NOT NULL DEFAULT 'pending',
   encrypted_customer_blob LONGBLOB NULL,
   encrypted_customer_blob_key_version VARCHAR(64) NULL,
   encryption_meta JSON NULL,
@@ -24,5 +24,5 @@ CREATE TABLE IF NOT EXISTS orders (
   INDEX idx_orders_user_status (user_id, status),
   INDEX idx_orders_uuid (uuid),
   UNIQUE KEY ux_orders_uuid_bin (uuid_bin),
-  CONSTRAINT chk_orders_currency CHECK (currency REGEXP ''^[A-Z]{3}$'')
+  CONSTRAINT chk_orders_currency CHECK (currency REGEXP '^[A-Z]{3}$')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -47,7 +47,7 @@ mysql -h 127.0.0.1 -P 3307 -u root -proot app < schema/030_foreign_keys.sql
 | uuid_bin | BINARY(16) | YES | — |  |
 | public_order_no | VARCHAR(64) | YES | — |  |
 | user_id | BIGINT UNSIGNED | YES | — |  |
-| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | '' |  |
+| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | 'pending' |  |
 | encrypted_customer_blob | LONGBLOB | YES | — |  |
 | encrypted_customer_blob_key_version | VARCHAR(64) | YES | — |  |
 | encryption_meta | JSON | YES | — |  |
