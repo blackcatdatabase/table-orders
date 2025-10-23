@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace BlackCat\Database\Packages\Orders;
 
-use BlackCat\Core\Database\Database;
+use BlackCat\Core\Database;
 
 final class Repository {
     public function __construct(private Database $db) {}
@@ -76,7 +76,7 @@ final class Repository {
         }
 
         $sqlBase = "INSERT INTO orders (".implode(',', $cols).") VALUES (".implode(',', $place).")";
-        $isMysql = $this->db->isMysql(); // očekává se v BlackCat\Core\Database\Database
+        $isMysql = $this->db->isMysql(); // očekává se v BlackCat\Core\Database
         if ($isMysql) {
             $sql = $sqlBase . " ON DUPLICATE KEY UPDATE " . implode(',', $mysqlUpd);
         } else {
