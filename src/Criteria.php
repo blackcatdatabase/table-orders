@@ -6,7 +6,7 @@ namespace BlackCat\Database\Packages\Orders;
 /**
  * Bezpečný builder WHERE/ORDER/LIMIT.
  * - whitelist filtrů: [ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at' ]
- * - whitelist pro LIKE hledání: [ 'uuid', 'public_order_no', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ]
+ * - whitelist pro LIKE hledání: [ 'uuid', 'public_order_no', 'status', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ]
  */
 final class Criteria {
     /** @var array<string,mixed> */
@@ -61,7 +61,7 @@ final class Criteria {
 
         // fulltext/LIKE (přes whitelist)
         if ($this->search !== null) {
-            $searchCols = [ 'uuid', 'public_order_no', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ];
+            $searchCols = [ 'uuid', 'public_order_no', 'status', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ];
             $likeParts = [];
             foreach ($searchCols as $i=>$c) {
                 if ($c === '') continue;

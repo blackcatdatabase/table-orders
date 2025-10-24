@@ -6,7 +6,6 @@ namespace BlackCat\Database\Packages\Orders\Mapper;
 use BlackCat\Database\Packages\Orders\Dto\OrderDto;
 use DateTimeImmutable;
 use DateTimeZone;
-use RuntimeException;
 
 /**
  * Obousměrný mapovač řádek DB <-> DTO:
@@ -30,15 +29,8 @@ final class OrderDtoMapper
     private const DATE_COLS   = [ 'created_at', 'updated_at' ];
     /** @var string[] */
     private const BIN_COLS    = [ 'uuid_bin', 'encrypted_customer_blob' ];
-    /** @var string[] */
-    private const NULLABLE    = [ 'id', 'uuid_bin', 'public_order_no', 'user_id', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'metadata', 'payment_method' ];
-    private const TZ          = 'UTC';
 
-    private static function isNullable(string $col): bool {
-        static $set = null;
-        if ($set === null) { $set = array_fill_keys(self::NULLABLE, true); }
-        return isset($set[$col]);
-    }
+    private const TZ = 'UTC';
 
     private static function colToProp(string $col): string {
         return self::COL_TO_PROP[$col] ?? $col; // fallback 1:1
@@ -49,14 +41,13 @@ final class OrderDtoMapper
         return $rev[$prop] ?? $prop;
     }
 
-    private static function toBool(mixed $v): bool {
-        // MySQL TINYINT(1) / Postgres boolean / stringy "0"/"1"
+    private static function toBool(mixed $v): ?bool {
+        if ($v === null || $v === '') return null;
         return match (true) {
-            $v === null => false,
-            is_bool($v) => $v,
-            is_int($v)  => $v !== 0,
+            is_bool($v)   => $v,
+            is_int($v)    => $v !== 0,
             is_string($v) => $v !== '' && $v !== '0',
-            default => (bool)$v,
+            default       => (bool)$v,
         };
     }
     private static function toInt(mixed $v): ?int {
@@ -67,17 +58,30 @@ final class OrderDtoMapper
         if ($v === null || $v === '') return null;
         return (float)$v;
     }
-    private static function toJson(mixed $v): mixed {
-        if ($v === null || $v === '') return null;
-        if (is_array($v) || is_object($v)) return $v;
-        $decoded = json_decode((string)$v, true, 512, JSON_THROW_ON_ERROR);
-        return $decoded;
-    }
     private static function toDate(mixed $v): ?DateTimeImmutable {
         if ($v === null || $v === '') return null;
         $tz = new DateTimeZone(self::TZ);
         if ($v instanceof DateTimeImmutable) return $v->setTimezone($tz);
         return new DateTimeImmutable((string)$v, $tz);
+    }
+
+    private static function decodeJson(mixed $v): ?array {
+        if ($v === null) return null;
+        if (is_array($v)) return $v;
+        if ($v instanceof \stdClass) return (array)$v;
+
+        if (is_string($v)) {
+            $t = trim($v);
+            if ($t === '' || $t === 'null') return null;
+            try {
+                return json_decode($t, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                $x = json_decode($t, true); // best-effort bez výjimky
+                return is_array($x) ? $x : null;
+            }
+        }
+        // poslední možnost – „nějaké“ pole
+        return (array)$v;
     }
 
     /**
@@ -89,23 +93,29 @@ final class OrderDtoMapper
         foreach ($row as $col => $val) {
             $prop = self::colToProp((string)$col);
 
-            if (in_array($col, self::BOOL_COLS, true))   { $val = self::toBool($val); }
+            if (in_array($col, self::BOOL_COLS, true))      { $val = self::toBool($val); }
             elseif (in_array($col, self::INT_COLS, true))   { $val = self::toInt($val); }
             elseif (in_array($col, self::FLOAT_COLS, true)) { $val = self::toFloat($val); }
-            elseif (in_array($col, self::JSON_COLS, true))  { $val = self::toJson($val); }
+            elseif (in_array($col, self::JSON_COLS, true))  { $val = self::decodeJson($val); }
             elseif (in_array($col, self::DATE_COLS, true))  { $val = self::toDate($val); }
-            // BIN_COLS ponecháváme jako raw string/resource (DB driver-dependent)
+            // BIN_COLS ponecháváme jako raw string/resource
 
-            if ($val === null && !self::isNullable($col)) {
-                // Nevyhazujeme výjimku – neznáme kontext (insert/update). Ponecháme null.
-            }
             $vals[$prop] = $val;
         }
 
-        // Vlastnosti DTO, které v řádku nebyly, ponecháme jako null (pokud konstruktor vyžaduje non-null, generátor zajistí default param)
-        // Konstrukci provedeme reflexivně: generátor předá parametry ve správném pořadí přes named arguments (PHP 8.1+)
-        // Pro jednoduchost poskládáme z mapy COL_TO_PROP i fallbacků:
-        return new OrderDto(...$vals);
+        $rc   = new \ReflectionClass(OrderDto::class);
+        $ctor = $rc->getConstructor();
+
+        if ($ctor === null || $ctor->getNumberOfRequiredParameters() === 0) {
+            return $rc->newInstance();
+        }
+
+        $ordered = [];
+        foreach ($ctor->getParameters() as $p) {
+            $name = $p->getName();
+            $ordered[] = $vals[$name] ?? ($p->isDefaultValueAvailable() ? $p->getDefaultValue() : null);
+        }
+        return $rc->newInstanceArgs($ordered);
     }
 
     /**
@@ -116,7 +126,7 @@ final class OrderDtoMapper
      */
     public static function toRow(OrderDto $dto, ?array $onlyProps = null): array {
         $out = [];
-        $src = $dto->toArray(); // public readonly -> bezpečné
+        $src = $dto->toArray();
 
         if ($onlyProps !== null) {
             $src = array_intersect_key($src, array_fill_keys($onlyProps, true));
@@ -126,7 +136,10 @@ final class OrderDtoMapper
             $col = self::propToCol((string)$prop);
 
             if (in_array($col, self::JSON_COLS, true)) {
-                $val = $val === null ? null : json_encode($val, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                $val = $val === null ? null : json_encode(
+                    $val,
+                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+                );
             } elseif (in_array($col, self::DATE_COLS, true)) {
                 if ($val instanceof DateTimeImmutable) {
                     $val = $val->format('Y-m-d H:i:s.u');

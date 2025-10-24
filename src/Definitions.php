@@ -6,7 +6,7 @@ namespace BlackCat\Database\Packages\Orders;
 final class Definitions {
     // --- základní metadata ---
     public static function table(): string { return 'orders'; }
-    public static function contractView(): string { return 'v_orders_contract'; }
+    public static function contractView(): string { return 'vw_orders'; }
     /** @return string[] */
     public static function columns(): array { return [ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at' ]; }
     public static function pk(): string { return 'id'; }
