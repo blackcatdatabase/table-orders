@@ -1,13 +1,15 @@
--- Auto-generated from schema-views-mysql.psd1 (map@mtime:2025-10-24T09:19:46Z)
+-- Auto-generated from schema-views-mysql.psd1 (map@38d5403)
 -- engine: mysql
 -- table:  orders
 -- Contract view for [orders]
--- Hides encrypted_customer_blob; keeps metadata and totals.
-CREATE OR REPLACE VIEW vw_orders AS
+-- Hides encrypted_customer_blob; adds UUID helpers.
+CREATE OR REPLACE SQL SECURITY INVOKER VIEW vw_orders AS
 SELECT
   id,
   uuid,
   uuid_bin,
+  BIN_TO_UUID(uuid_bin, TRUE) AS uuid_text,
+  HEX(uuid_bin) AS uuid_bin_hex,
   public_order_no,
   user_id,
   status,

@@ -4,15 +4,37 @@ declare(strict_types=1);
 namespace BlackCat\Database\Packages\Orders;
 
 /**
- * Bezpečný builder WHERE/ORDER/LIMIT.
- * - whitelist filtrů: [ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at' ]
- * - whitelist pro LIKE hledání: [ 'uuid', 'public_order_no', 'status', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ]
+ * Bezpečný builder WHERE/ORDER/LIMIT + joiny.
+ * - whitelist filtrů: [ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at', 'version' ]
+ * - whitelist LIKE:   [ 'uuid', 'public_order_no', 'status', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ]
+ * Podporované tvary:
+ *   addFilter('status', 'paid');                    // =
+ *   addFilter('id', [1,2,3]);                       // IN (...)
+ *   where('created_at','>=','2025-01-01');         // operátor
+ *   between('created_at','2025-01-01','2025-01-31');
+ *   isNull('deleted_at'); isNotNull('deleted_at');
+ *   search('foo');                                  // OR přes whitelist
+ *   join('LEFT JOIN vw_users u ON u.id = t.user_id', [':x'=>123]);
+ *   whereRaw('(t.total - t.discount_total) > :min', [':min'=>0]);
  */
 final class Criteria {
-    /** @var array<string,mixed> */
+    /** @var array<string,mixed> rovnost/IN */
     private array $filters = [];
+    /** @var array<int,array{col:string,op:string,val:mixed}> */
+    private array $ops = [];
+    /** @var array<int,array{col:string,from:mixed,to:mixed}> */
+    private array $ranges = [];
+    /** @var array<int,array{col:string,neg:bool}> */
+    private array $nulls = [];
     /** @var array<int,array{col:string,dir:string}> */
     private array $sort = [];
+    /** @var array<int,string> */
+    private array $joins = [];
+    /** @var array<string,mixed> */
+    private array $joinParams = [];
+    /** @var array<int,array{sql:string,params:array}> */
+    private array $raw = [];
+
     private ?string $search = null;
     private int $page = 1;
     private int $perPage = 50;
@@ -20,37 +42,59 @@ final class Criteria {
     public function addFilter(string $col, mixed $value): self {
         $this->filters[$col] = $value; return $this;
     }
+    public function where(string $col, string $op, mixed $val): self {
+        $this->ops[] = ['col'=>$col,'op'=>strtoupper(trim($op)),'val'=>$val]; return $this;
+    }
+    public function between(string $col, mixed $from, mixed $to): self {
+        $this->ranges[] = ['col'=>$col,'from'=>$from,'to'=>$to]; return $this;
+    }
+    public function isNull(string $col): self {
+        $this->nulls[] = ['col'=>$col,'neg'=>false]; return $this;
+    }
+    public function isNotNull(string $col): self {
+        $this->nulls[] = ['col'=>$col,'neg'=>true]; return $this;
+    }
+    public function whereRaw(string $sql, array $params = []): self {
+        $this->raw[] = ['sql'=>$sql,'params'=>$params]; return $this;
+    }
+
     public function orderBy(string $col, string $dir = 'ASC'): self {
         $this->sort[] = ['col'=>$col,'dir'=>$dir]; return $this;
     }
     public function search(?string $q): self {
         $this->search = $q !== null && $q !== '' ? $q : null; return $this;
     }
-    public function setPage(int $p): self {
-        $this->page = max(1, $p); return $this;
-    }
+    public function setPage(int $p): self { $this->page = max(1, $p); return $this; }
     public function setPerPage(int $n): self {
-        $n = max(1, min(500, $n));
-        $this->perPage = $n; return $this;
+        $n = max(1, min(500, $n)); $this->perPage = $n; return $this;
     }
+
+    /** Přidej JOIN (string fragment – generátor může vkládat přes Joins třídu). */
+    public function join(string $sqlJoinFragment, array $params = []): self {
+        if ($sqlJoinFragment !== '') { $this->joins[] = $sqlJoinFragment; }
+        foreach ($params as $k=>$v) { $this->joinParams[$k] = $v; }
+        return $this;
+    }
+
     public function pageNumber(): int { return $this->page; }
     public function perPage(): int { return $this->perPage; }
     public function page(): int { return $this->page; }
 
     /**
-     * @return array{0:string,1:array,2:?string,3:int,4:int,5:string} [where, params, order, limit, offset, joins]
+     * @return array{0:string,1:array,2:?string,3:int,4:int,5:string}
      */
     public function toSql(bool $viewMode = false): array {
         $where = [];
         $params = [];
 
-        // filtry (rovnosti / IN)
-        $allowed = array_fill_keys([ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at' ], true);
+        $allowed = array_fill_keys([ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at', 'version' ], true);
+
+        // rovnosti/IN
         foreach ($this->filters as $col=>$val) {
             if (!isset($allowed[$col])) { continue; }
             if (is_array($val) && $val) {
-                $ph = [];
-                foreach ($val as $i=>$v) { $k=":$col"."_$i"; $ph[]=$k; $params[$k]=$v; }
+                $ph = []; $i=0;
+                foreach ($val as $v) { $k=":$col"."_in_$i"; $ph[]=$k; $params[$k]=$v; $i++; }
                 $where[] = "$col IN (".implode(',', $ph).")";
             } elseif ($val === null) {
                 $where[] = "$col IS NULL";
@@ -59,16 +103,46 @@ final class Criteria {
             }
         }
 
-        // fulltext/LIKE (přes whitelist)
+        // operátory
+        foreach ($this->ops as $i=>$o) {
+            [$col,$op,$val] = [$o['col'],$o['op'],$o['val']];
+            if (!isset($allowed[$col])) { continue; }
+            // special-case ILIKE (PG) -> fallback na LIKE
+            if ($op === 'ILIKE') { $op = 'LIKE'; }
+            $k=":op_{$i}_$col"; $params[$k]=$val;
+            $where[] = "$col $op $k";
+        }
+
+        // between
+        foreach ($this->ranges as $i=>$r) {
+            $col = $r['col']; if (!isset($allowed[$col])) { continue; }
+            $k1=":b_{$i}_from_$col"; $k2=":b_{$i}_to_$col";
+            $params[$k1]=$r['from']; $params[$k2]=$r['to'];
+            $where[] = "$col BETWEEN $k1 AND $k2";
+        }
+
+        // IS NULL / IS NOT NULL
+        foreach ($this->nulls as $n) {
+            $col=$n['col']; if (!isset($allowed[$col])) { continue; }
+            $where[] = $col . ($n['neg'] ? ' IS NOT NULL' : ' IS NULL');
+        }
+
+        // search přes whitelist LIKE
         if ($this->search !== null) {
             $searchCols = [ 'uuid', 'public_order_no', 'status', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ];
-            $likeParts = [];
-            foreach ($searchCols as $i=>$c) {
-                if ($c === '') continue;
-                $k=":s$i"; $params[$k] = '%'.$this->search.'%';
+            $likeParts = []; $i=0;
+            foreach ($searchCols as $c) {
+                if ($c === '' || !isset($allowed[$c])) continue;
+                $k=":s$i"; $params[$k] = '%'.$this->search.'%'; $i++;
                 $likeParts[] = "$c LIKE $k";
             }
             if ($likeParts) { $where[] = '('.implode(' OR ', $likeParts).')'; }
+        }
+
+        // raw
+        foreach ($this->raw as $r) {
+            $where[] = '('.$r['sql'].')';
+            foreach ($r['params'] as $k=>$v) { $params[$k]=$v; }
         }
 
         if (!$where) { $where = ['1=1']; }
@@ -76,7 +150,7 @@ final class Criteria {
         // order
         $order = null;
         if ($this->sort) {
-            $safeCols = array_fill_keys([ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at' ], true);
+            $safeCols = array_fill_keys([ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at', 'version' ], true);
             $parts = [];
             foreach ($this->sort as $s) {
                 [$c,$d] = [$s['col'], strtoupper($s['dir'] ?? 'ASC')];
@@ -90,6 +164,10 @@ final class Criteria {
         $limit = $this->perPage;
         $offset = ($this->page - 1) * $this->perPage;
 
-        return [implode(' AND ', $where), $params, $order, $limit, $offset, ''];
+        $joins = '';
+        if ($this->joins) { $joins = implode(' ', $this->joins); }
+        if ($this->joinParams) { $params = $this->joinParams + $params; }
+
+        return [implode(' AND ', $where), $params, $order, $limit, $offset, $joins];
     }
 }

@@ -1,4 +1,4 @@
--- Auto-generated from schema-map-mysql.psd1 (map@mtime:2025-10-24T09:13:35Z)
+-- Auto-generated from schema-map-mysql.psd1 (map@38d5403)
 -- engine: mysql
 -- table:  orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_method VARCHAR(100) NULL,
   created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  version INT UNSIGNED NOT NULL DEFAULT 0,
   INDEX idx_orders_user_id (user_id),
   INDEX idx_orders_status (status),
   INDEX idx_orders_user_status (user_id, status),
