@@ -87,6 +87,15 @@ final class Criteria {
         $where = [];
         $params = [];
 
+        // Pokud jedeme přes view s aliasem "t" (repo volá toSql(true)),
+        // prefiksuj whitelisted sloupce "t." v WHERE, aby nedošlo ke kolizi s JOINy.
+        $ref = static function (string $c) use ($viewMode): string {
+            if ($c === '') { return $c; }
+            // necháme uživatelské výrazy s tečkou být (t.col / j0.col...)
+            if (strpos($c, '.') !== false) { return $c; }
+            return $viewMode ? 't.' . $c : $c;
+        };
+
         $allowed = array_fill_keys([ 'id', 'uuid', 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at', 'version' ], true);
 
         // rovnosti/IN
@@ -95,11 +104,11 @@ final class Criteria {
             if (is_array($val) && $val) {
                 $ph = []; $i=0;
                 foreach ($val as $v) { $k=":$col"."_in_$i"; $ph[]=$k; $params[$k]=$v; $i++; }
-                $where[] = "$col IN (".implode(',', $ph).")";
+                $where[] = $ref($col) . " IN (".implode(',', $ph).")";
             } elseif ($val === null) {
-                $where[] = "$col IS NULL";
+                $where[] = $ref($col) . " IS NULL";
             } else {
-                $k=":$col"; $params[$k]=$val; $where[] = "$col = $k";
+                $k=":$col"; $params[$k]=$val; $where[] = $ref($col) . " = $k";
             }
         }
 
@@ -110,7 +119,7 @@ final class Criteria {
             // special-case ILIKE (PG) -> fallback na LIKE
             if ($op === 'ILIKE') { $op = 'LIKE'; }
             $k=":op_{$i}_$col"; $params[$k]=$val;
-            $where[] = "$col $op $k";
+            $where[] = $ref($col) . " $op $k";
         }
 
         // between
@@ -118,13 +127,13 @@ final class Criteria {
             $col = $r['col']; if (!isset($allowed[$col])) { continue; }
             $k1=":b_{$i}_from_$col"; $k2=":b_{$i}_to_$col";
             $params[$k1]=$r['from']; $params[$k2]=$r['to'];
-            $where[] = "$col BETWEEN $k1 AND $k2";
+            $where[] = $ref($col) . " BETWEEN $k1 AND $k2";
         }
 
         // IS NULL / IS NOT NULL
         foreach ($this->nulls as $n) {
             $col=$n['col']; if (!isset($allowed[$col])) { continue; }
-            $where[] = $col . ($n['neg'] ? ' IS NOT NULL' : ' IS NULL');
+            $where[] = $ref($col) . ($n['neg'] ? ' IS NOT NULL' : ' IS NULL');
         }
 
         // search přes whitelist LIKE
@@ -134,7 +143,7 @@ final class Criteria {
             foreach ($searchCols as $c) {
                 if ($c === '' || !isset($allowed[$c])) continue;
                 $k=":s$i"; $params[$k] = '%'.$this->search.'%'; $i++;
-                $likeParts[] = "$c LIKE $k";
+                $likeParts[] = $ref($c) . " LIKE $k";
             }
             if ($likeParts) { $where[] = '('.implode(' OR ', $likeParts).')'; }
         }
@@ -156,6 +165,7 @@ final class Criteria {
                 [$c,$d] = [$s['col'], strtoupper($s['dir'] ?? 'ASC')];
                 if (!isset($safeCols[$c])) { continue; }
                 if (!in_array($d, ['ASC','DESC'], true)) { $d='ASC'; }
+                // ORDER necháváme bez prefixu – escapuje a aliasuje se až v repo->buildOrderBy()
                 $parts[] = "$c $d";
             }
             if ($parts) { $order = implode(',', $parts); }

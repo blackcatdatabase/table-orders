@@ -1,15 +1,16 @@
--- Auto-generated from schema-views-mysql.psd1 (map@38d5403)
+-- Auto-generated from schema-views-mysql.psd1 (map@c5e4097)
 -- engine: mysql
 -- table:  orders
 -- Contract view for [orders]
 -- Hides encrypted_customer_blob; adds UUID helpers.
-CREATE OR REPLACE SQL SECURITY INVOKER VIEW vw_orders AS
+CREATE OR REPLACE ALGORITHM=MERGE SQL SECURITY INVOKER VIEW vw_orders AS
 SELECT
   id,
   uuid,
   uuid_bin,
-  BIN_TO_UUID(uuid_bin, TRUE) AS uuid_text,
-  HEX(uuid_bin) AS uuid_bin_hex,
+  CAST(BIN_TO_UUID(uuid_bin, TRUE) AS CHAR(36)) AS uuid_text,
+  CAST(LPAD(HEX(uuid_bin), 32, '0') AS CHAR(32)) AS uuid_bin_hex,
+  CAST(HEX(COALESCE(uuid_bin, UNHEX(REPLACE(CAST(uuid AS CHAR(36)), '-', '')))) AS CHAR(32)) AS uuid_hex,
   public_order_no,
   user_id,
   status,
@@ -23,5 +24,6 @@ SELECT
   total,
   payment_method,
   created_at,
-  updated_at
+  updated_at,
+  version
 FROM orders;
