@@ -1,4 +1,4 @@
--- Auto-generated from schema-map-postgres.psd1 (map@c5e4097)
+-- Auto-generated from schema-map-postgres.psd1 (map@db2f8b8)
 -- engine: postgres
 -- table:  orders
 CREATE TABLE IF NOT EXISTS orders (
@@ -23,6 +23,5 @@ CREATE TABLE IF NOT EXISTS orders (
   version INTEGER NOT NULL DEFAULT 0,
   CONSTRAINT chk_orders_version CHECK (version >= 0),
   CONSTRAINT chk_orders_status CHECK (status IN ('pending','paid','failed','cancelled','refunded','completed')),
-  CONSTRAINT chk_orders_currency CHECK (currency ~ '^[A-Z]{3}$'),
-  CONSTRAINT ux_orders_uuid_bin UNIQUE (uuid_bin)
+  CONSTRAINT chk_orders_currency CHECK (currency ~ '^[A-Z]{3}$')
 );

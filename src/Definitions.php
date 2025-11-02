@@ -44,7 +44,7 @@ final class Definitions {
     }
 
     /** @return array<int,array<int,string>> seznam unikátních klíčů */
-    public static function uniqueKeys(): array { return [ [ 'uuid_bin' ], [ 'uuid' ], [ 'constraint' ], [ 'id' ] ]; }
+    public static function uniqueKeys(): array { return [ [ 'uuid_bin' ], [ 'uuid' ], [ 'id' ] ]; }
 
     /** @return string[] JSON sloupce kvůli castům/operacím */
     public static function jsonColumns(): array { return [ 'encryption_meta', 'metadata' ]; }

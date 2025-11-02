@@ -245,7 +245,7 @@ final class OrdersModule implements ModuleInterface {
         ) > 0;
 
         // quick check indexů/FK – generátor doplní názvy
-        $indexes = [ 'idx_orders_created_at', 'idx_orders_status', 'idx_orders_user_created', 'idx_orders_user_id', 'idx_orders_user_status' ];
+        $indexes = [ 'idx_orders_created_at', 'idx_orders_status', 'idx_orders_user_created', 'idx_orders_user_id', 'idx_orders_user_status', 'ux_orders_uuid_bin' ];
         $fks     = [ 'fk_orders_user' ];
         $missingIdx = [];
         $missingFk  = [];

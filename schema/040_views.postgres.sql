@@ -1,4 +1,4 @@
--- Auto-generated from schema-views-postgres.psd1 (map@c5e4097)
+-- Auto-generated from schema-views-postgres.psd1 (map@db2f8b8)
 -- engine: postgres
 -- table:  orders
 -- Contract view for [orders]
@@ -8,14 +8,14 @@ CREATE OR REPLACE VIEW vw_orders AS
 SELECT
   id,
   uuid,
-  uuid::text AS uuid_text,
-  upper(replace(uuid::text, '-','')) AS uuid_hex,
-  encode(uuid_bin, 'hex') AS uuid_bin_hex,
+  uuid::text::char(36) AS uuid_text,
+  UPPER(translate(uuid::text,'-',''))::char(32) AS uuid_hex,
+  UPPER(encode(uuid_bin,'hex'))::char(32) AS uuid_bin_hex,
   public_order_no,
   user_id,
   status,
   encrypted_customer_blob_key_version,
-  encode(encrypted_customer_blob, 'hex') AS encrypted_customer_blob_hex,
+  UPPER(encode(encrypted_customer_blob,'hex'))::char(64) AS encrypted_customer_blob_hex,
   encryption_meta,
   currency,
   metadata,
