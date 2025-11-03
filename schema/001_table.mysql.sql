@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS orders (
   INDEX idx_orders_user_id (user_id),
   INDEX idx_orders_status (status),
   INDEX idx_orders_user_status (user_id, status),
-  INDEX idx_orders_uuid (uuid),
   UNIQUE KEY ux_orders_uuid_bin (uuid_bin),
   CONSTRAINT chk_orders_currency CHECK (currency REGEXP '^[A-Z]{3}$')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
