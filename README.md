@@ -2,7 +2,7 @@
 
 ![SQL](https://img.shields.io/badge/SQL-MySQL%208.0%2B-4479A1?logo=mysql&logoColor=white) ![License](https://img.shields.io/badge/license-BlackCat%20Proprietary-red) ![Status](https://img.shields.io/badge/status-stable-informational) ![Generated](https://img.shields.io/badge/generated-from%20schema--map-blue)
 
-<!-- Auto-generated from schema-map.psd1 @ 6cefe8e (2025-10-22T20:27:41+02:00) -->
+<!-- Auto-generated from schema-map-postgres.psd1 @ 62c9c93 (2025-11-20T21:38:11+01:00) -->
 
 > Schema package for table **orders** (repo: `orders`).
 
@@ -42,55 +42,61 @@ mysql -h 127.0.0.1 -P 3307 -u root -proot app < schema/030_foreign_keys.sql
 ## Columns
 | Column | Type | Null | Default | Extra |
 |-------:|:-----|:----:|:--------|:------|
-| id | BIGINT UNSIGNED | — | — | AUTO_INCREMENT, PK |
+| id | BIGINT | — | AS | PK |
+| tenant_id | BIGINT | NO | — |  |
 | uuid | CHAR(36) | NO | — |  |
-| uuid_bin | BINARY(16) | YES | — |  |
+| uuid_bin | BYTEA | YES | — |  |
 | public_order_no | VARCHAR(64) | YES | — |  |
-| user_id | BIGINT UNSIGNED | YES | — |  |
-| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | 'pending' |  |
-| encrypted_customer_blob | LONGBLOB | YES | — |  |
+| user_id | BIGINT | YES | — |  |
+| status | TEXT | NO | 'pending' |  |
+| encrypted_customer_blob | BYTEA | YES | — |  |
 | encrypted_customer_blob_key_version | VARCHAR(64) | YES | — |  |
-| encryption_meta | JSON | YES | — |  |
+| encryption_meta | JSONB | YES | — |  |
 | currency | CHAR(3) | NO | — |  |
-| metadata | JSON | YES | — |  |
-| subtotal | DECIMAL(12,2) | NO | 0 |  |
-| discount_total | DECIMAL(12,2) | NO | 0 |  |
-| tax_total | DECIMAL(12,2) | NO | 0 |  |
-| total | DECIMAL(12,2) | NO | 0 |  |
+| metadata | JSONB | YES | — |  |
+| subtotal | NUMERIC(12,2) | NO | 0 |  |
+| discount_total | NUMERIC(12,2) | NO | 0 |  |
+| tax_total | NUMERIC(12,2) | NO | 0 |  |
+| total | NUMERIC(12,2) | NO | 0 |  |
 | payment_method | VARCHAR(100) | YES | — |  |
-| created_at | DATETIME(6) | NO | CURRENT_TIMESTAMP(6) |  |
-| updated_at | DATETIME(6) | NO | CURRENT_TIMESTAMP(6) |  |
+| created_at | TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) |  |
+| updated_at | TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) |  |
+| version | INTEGER | NO | 0 |  |
 
 ## Relationships
+- FK → **tenants** via (tenant_id) (ON DELETE RESTRICT).
 - FK → **users** via (user_id) (ON DELETE SET NULL).
 
 ```mermaid
 erDiagram
   ORDERS {
     INT id PK
+    INT tenant_id
     VARCHAR uuid
-    BLOB uuid_bin
+    BYTEA uuid_bin
     VARCHAR public_order_no
     INT user_id
-    ENUM status
-    BLOB encrypted_customer_blob
+    VARCHAR status
+    BYTEA encrypted_customer_blob
     VARCHAR encrypted_customer_blob_key_version
-    JSON encryption_meta
+    JSONB encryption_meta
     VARCHAR currency
-    JSON metadata
+    JSONB metadata
     DECIMAL subtotal
     DECIMAL discount_total
     DECIMAL tax_total
     DECIMAL total
     VARCHAR payment_method
-    DATETIME created_at
-    DATETIME updated_at
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+    INTEGER version
   }
+  ORDERS }o--|| TENANTS : "tenant_id"
   ORDERS }o--|| USERS : "user_id"
 ```
 
 ## Indexes
-- 1 deferred index statement(s) in schema/020_indexes.sql.
+- 11 deferred index statement(s) in schema/020_indexes.sql.
 
 ## Notes
 - Generated from the umbrella repository **blackcat-database** using `scripts/schema-map.psd1`.
