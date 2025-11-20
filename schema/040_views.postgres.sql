@@ -1,19 +1,4 @@
--- Auto-generated from schema-views-postgres.psd1 (map@9d3471b)
--- engine: postgres
--- table:  orders_revenue_daily
--- Daily revenue (orders) and counts; refunds reported separately
-CREATE OR REPLACE VIEW vw_revenue_daily AS
-SELECT
-  date_trunc(''day'', created_at) AS day,
-  COUNT(*) FILTER (WHERE status IN (''paid'',''completed'')) AS paid_orders,
-  SUM(total) FILTER (WHERE status IN (''paid'',''completed'')) AS revenue_gross,
-  COUNT(*) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_orders,
-  SUM(total) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_total
-FROM orders
-GROUP BY 1
-ORDER BY day DESC;
-
--- Auto-generated from schema-views-postgres.psd1 (map@9d3471b)
+-- Auto-generated from schema-views-postgres.psd1 (map@62c9c93)
 -- engine: postgres
 -- table:  orders
 -- Contract view for [orders]
@@ -48,8 +33,23 @@ SELECT
   version
 FROM orders;
 
+-- Auto-generated from schema-views-postgres.psd1 (map@62c9c93)
+-- engine: postgres
+-- table:  orders_revenue_daily
+-- Daily revenue (orders) and counts; refunds reported separately
+CREATE OR REPLACE VIEW vw_revenue_daily AS
+SELECT
+  date_trunc(''day'', created_at) AS day,
+  COUNT(*) FILTER (WHERE status IN (''paid'',''completed'')) AS paid_orders,
+  SUM(total) FILTER (WHERE status IN (''paid'',''completed'')) AS revenue_gross,
+  COUNT(*) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_orders,
+  SUM(total) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_total
+FROM orders
+GROUP BY 1
+ORDER BY day DESC;
 
--- Auto-generated from schema-views-postgres.psd1 (map@9d3471b)
+
+-- Auto-generated from schema-views-postgres.psd1 (map@62c9c93)
 -- engine: postgres
 -- table:  orders_funnel
 -- Global funnel of orders
