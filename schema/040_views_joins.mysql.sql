@@ -1,7 +1,7 @@
--- Auto-generated from joins-mysql.psd1 (map@mtime:2025-11-27T17:49:37Z)
+-- Auto-generated from joins-mysql.yaml (map@94ebe6c)
 -- engine: mysql
--- view:   orders_revenue_daily
--- Daily revenue (orders) and counts; refunds reported separately
+-- view:   revenue_daily
+
 CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_revenue_daily AS
 SELECT
   DATE(created_at) AS day,
@@ -13,10 +13,10 @@ FROM orders
 GROUP BY DATE(created_at)
 ORDER BY day DESC;
 
--- Auto-generated from joins-mysql.psd1 (map@mtime:2025-11-27T17:49:37Z)
+-- Auto-generated from joins-mysql.yaml (map@94ebe6c)
 -- engine: mysql
 -- view:   orders_user_summary
--- User-level order summary
+
 CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_user_summary AS
 SELECT
   u.id AS user_id,
@@ -27,29 +27,10 @@ LEFT JOIN orders o ON o.user_id = u.id
 GROUP BY u.id;
 
 
--- Auto-generated from joins-mysql.psd1 (map@mtime:2025-11-27T17:49:37Z)
--- engine: mysql
--- view:   orders_with_user
--- Orders with user info and item counts
-CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_with_user AS
-SELECT
-  o.id,
-  o.tenant_id,
-  o.user_id,
-  u.email_hash,
-  o.status,
-  o.total,
-  o.currency,
-  o.created_at,
-  (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
-FROM orders o
-LEFT JOIN users u ON u.id = o.user_id;
-
-
--- Auto-generated from joins-mysql.psd1 (map@mtime:2025-11-27T17:49:37Z)
+-- Auto-generated from joins-mysql.yaml (map@94ebe6c)
 -- engine: mysql
 -- view:   orders_funnel
--- Global funnel of orders
+
 CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_funnel AS
 SELECT
   COUNT(*) AS orders_total,
@@ -66,10 +47,29 @@ SELECT
 FROM orders;
 
 
--- Auto-generated from joins-mysql.psd1 (map@mtime:2025-11-27T17:49:37Z)
+-- Auto-generated from joins-mysql.yaml (map@94ebe6c)
+-- engine: mysql
+-- view:   orders_with_user
+
+CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_with_user AS
+SELECT
+  o.id,
+  o.tenant_id,
+  o.user_id,
+  u.email_hash,
+  o.status,
+  o.total,
+  o.currency,
+  o.created_at,
+  (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
+FROM orders o
+LEFT JOIN users u ON u.id = o.user_id;
+
+
+-- Auto-generated from joins-mysql.yaml (map@94ebe6c)
 -- engine: mysql
 -- view:   orders_payments_latest
--- Orders with latest payment snapshot
+
 CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_payments_latest AS
 WITH ranked_payments AS (
   SELECT

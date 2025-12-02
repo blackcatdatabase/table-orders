@@ -1,4 +1,4 @@
--- Auto-generated from joins-postgres.psd1 (map@mtime:2025-11-27T17:17:38Z)
+-- Auto-generated from joins-postgres.yaml (map@94ebe6c)
 -- engine: postgres
 -- view:   orders_user_summary
 
@@ -7,12 +7,12 @@ CREATE OR REPLACE VIEW vw_orders_user_summary AS
 SELECT
   u.id AS user_id,
   COUNT(o.id) AS orders_count,
-  SUM(CASE WHEN o.status IN (''paid'',''completed'') THEN o.total ELSE 0 END) AS total_spent
+  SUM(CASE WHEN o.status IN ($$paid$$,$$completed$$) THEN o.total ELSE 0 END) AS total_spent
 FROM users u
 LEFT JOIN orders o ON o.user_id = u.id
 GROUP BY u.id;
 
--- Auto-generated from joins-postgres.psd1 (map@mtime:2025-11-27T17:17:38Z)
+-- Auto-generated from joins-postgres.yaml (map@94ebe6c)
 -- engine: postgres
 -- view:   orders_funnel
 
@@ -20,20 +20,20 @@ GROUP BY u.id;
 CREATE OR REPLACE VIEW vw_orders_funnel AS
 SELECT
   COUNT(*) AS orders_total,
-  COUNT(*) FILTER (WHERE status = ''pending'')   AS pending,
-  COUNT(*) FILTER (WHERE status = ''paid'')      AS paid,
-  COUNT(*) FILTER (WHERE status = ''completed'') AS completed,
-  COUNT(*) FILTER (WHERE status = ''failed'')    AS failed,
-  COUNT(*) FILTER (WHERE status = ''cancelled'') AS cancelled,
-  COUNT(*) FILTER (WHERE status = ''refunded'')  AS refunded,
+  COUNT(*) FILTER (WHERE status = $$pending$$)   AS pending,
+  COUNT(*) FILTER (WHERE status = $$paid$$)      AS paid,
+  COUNT(*) FILTER (WHERE status = $$completed$$) AS completed,
+  COUNT(*) FILTER (WHERE status = $$failed$$)    AS failed,
+  COUNT(*) FILTER (WHERE status = $$cancelled$$) AS cancelled,
+  COUNT(*) FILTER (WHERE status = $$refunded$$)  AS refunded,
   ROUND(
-    100.0 * COUNT(*) FILTER (WHERE status IN (''paid'',''completed'')) / GREATEST(COUNT(*),1),
+    100.0 * COUNT(*) FILTER (WHERE status IN ($$paid$$,$$completed$$)) / GREATEST(COUNT(*),1),
     2
   ) AS payment_conversion_pct
 FROM orders;
 
 
--- Auto-generated from joins-postgres.psd1 (map@mtime:2025-11-27T17:17:38Z)
+-- Auto-generated from joins-postgres.yaml (map@94ebe6c)
 -- engine: postgres
 -- view:   orders_payments_latest
 
@@ -61,24 +61,7 @@ LEFT JOIN LATERAL (
 ) p ON TRUE;
 
 
--- Auto-generated from joins-postgres.psd1 (map@mtime:2025-11-27T17:17:38Z)
--- engine: postgres
--- view:   orders_revenue_daily
-
--- Daily revenue (orders) and counts; refunds reported separately
-CREATE OR REPLACE VIEW vw_revenue_daily AS
-SELECT
-  date_trunc(''day'', created_at) AS day,
-  COUNT(*) FILTER (WHERE status IN (''paid'',''completed'')) AS paid_orders,
-  SUM(total) FILTER (WHERE status IN (''paid'',''completed'')) AS revenue_gross,
-  COUNT(*) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_orders,
-  SUM(total) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_total
-FROM orders
-GROUP BY 1
-ORDER BY day DESC;
-
-
--- Auto-generated from joins-postgres.psd1 (map@mtime:2025-11-27T17:17:38Z)
+-- Auto-generated from joins-postgres.yaml (map@94ebe6c)
 -- engine: postgres
 -- view:   orders_with_user
 
@@ -96,4 +79,21 @@ SELECT
   (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
 FROM orders o
 LEFT JOIN users u ON u.id = o.user_id;
+
+
+-- Auto-generated from joins-postgres.yaml (map@94ebe6c)
+-- engine: postgres
+-- view:   orders_revenue_daily
+
+-- Daily revenue (orders) and counts; refunds reported separately
+CREATE OR REPLACE VIEW vw_revenue_daily AS
+SELECT
+  date_trunc($$day$$, created_at) AS day,
+  COUNT(*) FILTER (WHERE status IN ($$paid$$,$$completed$$)) AS paid_orders,
+  SUM(total) FILTER (WHERE status IN ($$paid$$,$$completed$$)) AS revenue_gross,
+  COUNT(*) FILTER (WHERE status IN ($$failed$$,$$cancelled$$)) AS lost_orders,
+  SUM(total) FILTER (WHERE status IN ($$failed$$,$$cancelled$$)) AS lost_total
+FROM orders
+GROUP BY 1
+ORDER BY day DESC;
 
