@@ -38,7 +38,7 @@ final class Criteria extends BaseCriteria
     /** Columns used for full-text LIKE/ILIKE searches. */
     protected function searchable(): array
     {
-        return [ 'uuid', 'public_order_no', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ];
+        return [ 'uuid', 'public_order_no', 'status', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ];
     }
 
 /** Columns allowed in ORDER BY (falls back to filterable() when empty). */

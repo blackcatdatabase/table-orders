@@ -128,7 +128,7 @@ SQL;
         $hasView  = SchemaIntrospector::hasView($db, $d, $view);
 
         // Quick index/FK check â€“ generator injects names (case-sensitive per DB)
-        $expectedIdx = [ 'idx_orders_created_at', 'idx_orders_tenant_user_created', 'idx_orders_user_created' ];
+        $expectedIdx = [ 'gin_orders_metadata', 'idx_orders_created_at', 'idx_orders_status', 'idx_orders_tenant', 'idx_orders_tenant_user_created', 'idx_orders_user_created', 'idx_orders_user_id', 'idx_orders_user_status', 'ux_orders_tenant_id', 'ux_orders_tenant_public_no', 'ux_orders_tenant_uuid_bin' ];
         if ($d->isMysql()) {
             // Drop PG-only index naming patterns (e.g., GIN/GiST)
             $expectedIdx = array_values(array_filter(
@@ -161,7 +161,7 @@ SQL;
             'columns'     => Definitions::columns(),
             'version'     => $this->version(),
             'dialects'    => [ 'mysql', 'postgres' ],
-            'indexes'     => [ 'idx_orders_created_at', 'idx_orders_tenant_user_created', 'idx_orders_user_created' ],
+            'indexes'     => [ 'gin_orders_metadata', 'idx_orders_created_at', 'idx_orders_status', 'idx_orders_tenant', 'idx_orders_tenant_user_created', 'idx_orders_user_created', 'idx_orders_user_id', 'idx_orders_user_status', 'ux_orders_tenant_id', 'ux_orders_tenant_public_no', 'ux_orders_tenant_uuid_bin' ],
             'foreignKeys' => [ 'fk_orders_tenant', 'fk_orders_user' ],
         ];
     }
