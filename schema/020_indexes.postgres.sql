@@ -1,4 +1,4 @@
--- Auto-generated from schema-map-postgres.yaml (map@74ce4f4)
+-- Auto-generated from schema-map-postgres.yaml (map@sha1:F0EE237771FBA8DD7C4E886FF276F91A862C3718)
 -- engine: postgres
 -- table:  orders
 
@@ -23,5 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_user_created ON orders (user_id, created_a
 CREATE INDEX IF NOT EXISTS gin_orders_metadata      ON orders USING GIN (metadata jsonb_path_ops);
 
 CREATE INDEX IF NOT EXISTS idx_orders_tenant ON orders (tenant_id);
+
+CREATE INDEX IF NOT EXISTS idx_orders_tenant_user ON orders (tenant_id, user_id);
 
 CREATE INDEX IF NOT EXISTS idx_orders_tenant_user_created ON orders (tenant_id, user_id, created_at);

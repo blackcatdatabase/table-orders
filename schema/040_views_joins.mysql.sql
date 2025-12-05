@@ -1,4 +1,4 @@
--- Auto-generated from joins-mysql.yaml (map@85230ed)
+-- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_funnel
 
@@ -17,7 +17,7 @@ SELECT
   ) AS payment_conversion_pct
 FROM orders;
 
--- Auto-generated from joins-mysql.yaml (map@85230ed)
+-- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_payments_latest
 
@@ -47,23 +47,7 @@ LEFT JOIN ranked_payments rp
  AND rp.rn = 1;
 
 
--- Auto-generated from joins-mysql.yaml (map@85230ed)
--- engine: mysql
--- view:   orders_revenue_daily
-
-CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_revenue_daily AS
-SELECT
-  DATE(created_at) AS day,
-  SUM(CASE WHEN status IN ('paid','completed') THEN 1 ELSE 0 END) AS paid_orders,
-  SUM(CASE WHEN status IN ('paid','completed') THEN total ELSE 0 END) AS revenue_gross,
-  SUM(CASE WHEN status IN ('failed','cancelled') THEN 1 ELSE 0 END) AS lost_orders,
-  SUM(CASE WHEN status IN ('failed','cancelled') THEN total ELSE 0 END) AS lost_total
-FROM orders
-GROUP BY DATE(created_at)
-ORDER BY day DESC;
-
-
--- Auto-generated from joins-mysql.yaml (map@85230ed)
+-- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_user_summary
 
@@ -77,7 +61,7 @@ LEFT JOIN orders o ON o.user_id = u.id
 GROUP BY u.id;
 
 
--- Auto-generated from joins-mysql.yaml (map@85230ed)
+-- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_with_user
 
@@ -94,4 +78,20 @@ SELECT
   (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
 FROM orders o
 LEFT JOIN users u ON u.id = o.user_id;
+
+
+-- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- engine: mysql
+-- view:   revenue_daily
+
+CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_revenue_daily AS
+SELECT
+  DATE(created_at) AS day,
+  SUM(CASE WHEN status IN ('paid','completed') THEN 1 ELSE 0 END) AS paid_orders,
+  SUM(CASE WHEN status IN ('paid','completed') THEN total ELSE 0 END) AS revenue_gross,
+  SUM(CASE WHEN status IN ('failed','cancelled') THEN 1 ELSE 0 END) AS lost_orders,
+  SUM(CASE WHEN status IN ('failed','cancelled') THEN total ELSE 0 END) AS lost_total
+FROM orders
+GROUP BY DATE(created_at)
+ORDER BY day DESC;
 
