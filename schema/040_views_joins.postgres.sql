@@ -1,36 +1,22 @@
 -- Auto-generated from joins-postgres.yaml (map@85230ed)
 -- engine: postgres
--- view:   orders_with_user
+-- view:   orders_funnel
 
--- Orders with user info and item counts
-CREATE OR REPLACE VIEW vw_orders_with_user AS
+-- Global funnel of orders
+CREATE OR REPLACE VIEW vw_orders_funnel AS
 SELECT
-  o.id,
-  o.tenant_id,
-  o.user_id,
-  u.email_hash,
-  o.status,
-  o.total,
-  o.currency,
-  o.created_at,
-  (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
-FROM orders o
-LEFT JOIN users u ON u.id = o.user_id;
-
--- Auto-generated from joins-postgres.yaml (map@85230ed)
--- engine: postgres
--- view:   orders_user_summary
-
--- User-level order summary
-CREATE OR REPLACE VIEW vw_orders_user_summary AS
-SELECT
-  u.id AS user_id,
-  COUNT(o.id) AS orders_count,
-  SUM(CASE WHEN o.status IN ($$paid$$,$$completed$$) THEN o.total ELSE 0 END) AS total_spent
-FROM users u
-LEFT JOIN orders o ON o.user_id = u.id
-GROUP BY u.id;
-
+  COUNT(*) AS orders_total,
+  COUNT(*) FILTER (WHERE status = $$pending$$)   AS pending,
+  COUNT(*) FILTER (WHERE status = $$paid$$)      AS paid,
+  COUNT(*) FILTER (WHERE status = $$completed$$) AS completed,
+  COUNT(*) FILTER (WHERE status = $$failed$$)    AS failed,
+  COUNT(*) FILTER (WHERE status = $$cancelled$$) AS cancelled,
+  COUNT(*) FILTER (WHERE status = $$refunded$$)  AS refunded,
+  ROUND(
+    100.0 * COUNT(*) FILTER (WHERE status IN ($$paid$$,$$completed$$)) / GREATEST(COUNT(*),1),
+    2
+  ) AS payment_conversion_pct
+FROM orders;
 
 -- Auto-generated from joins-postgres.yaml (map@85230ed)
 -- engine: postgres
@@ -79,21 +65,35 @@ ORDER BY day DESC;
 
 -- Auto-generated from joins-postgres.yaml (map@85230ed)
 -- engine: postgres
--- view:   orders_funnel
+-- view:   orders_user_summary
 
--- Global funnel of orders
-CREATE OR REPLACE VIEW vw_orders_funnel AS
+-- User-level order summary
+CREATE OR REPLACE VIEW vw_orders_user_summary AS
 SELECT
-  COUNT(*) AS orders_total,
-  COUNT(*) FILTER (WHERE status = $$pending$$)   AS pending,
-  COUNT(*) FILTER (WHERE status = $$paid$$)      AS paid,
-  COUNT(*) FILTER (WHERE status = $$completed$$) AS completed,
-  COUNT(*) FILTER (WHERE status = $$failed$$)    AS failed,
-  COUNT(*) FILTER (WHERE status = $$cancelled$$) AS cancelled,
-  COUNT(*) FILTER (WHERE status = $$refunded$$)  AS refunded,
-  ROUND(
-    100.0 * COUNT(*) FILTER (WHERE status IN ($$paid$$,$$completed$$)) / GREATEST(COUNT(*),1),
-    2
-  ) AS payment_conversion_pct
-FROM orders;
+  u.id AS user_id,
+  COUNT(o.id) AS orders_count,
+  SUM(CASE WHEN o.status IN ($$paid$$,$$completed$$) THEN o.total ELSE 0 END) AS total_spent
+FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+GROUP BY u.id;
+
+
+-- Auto-generated from joins-postgres.yaml (map@85230ed)
+-- engine: postgres
+-- view:   orders_with_user
+
+-- Orders with user info and item counts
+CREATE OR REPLACE VIEW vw_orders_with_user AS
+SELECT
+  o.id,
+  o.tenant_id,
+  o.user_id,
+  u.email_hash,
+  o.status,
+  o.total,
+  o.currency,
+  o.created_at,
+  (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
+FROM orders o
+LEFT JOIN users u ON u.id = o.user_id;
 

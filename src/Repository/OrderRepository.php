@@ -606,6 +606,20 @@ use OrderByTools, PkTools, RepositoryHelpers;
         return $row['id'] ?? null;
     }
     /** @return array<string,mixed>|\BlackCat\Database\Packages\Orders\Dto\OrderDto|null */
+    public function getByTenantIdAndUuidBin(int $tenantId, string $uuidBin, bool $asDto = false): array|\BlackCat\Database\Packages\Orders\Dto\OrderDto|null {
+        return $this->getByUnique([ 'tenant_id' => $tenantId, 'uuid_bin' => $uuidBin ], $asDto);
+    }
+    public function existsByTenantIdAndUuidBin(int $tenantId, string $uuidBin): bool {
+        $where = 't.' . Ident::q($this->db, 'tenant_id') . ' = :uniq_tenant_id' . ' AND ' . 't.' . Ident::q($this->db, 'uuid_bin') . ' = :uniq_uuid_bin';
+        return $this->exists($where, [ 'uniq_tenant_id' => $tenantId, 'uniq_uuid_bin' => $uuidBin ]);
+    }
+    /** @return int|string|null */
+    public function getIdByTenantIdAndUuidBin(int $tenantId, string $uuidBin) {
+        $row = $this->getByTenantIdAndUuidBin($tenantId, $uuidBin, false);
+        if (!is_array($row)) { return null; }
+        return $row['id'] ?? null;
+    }
+    /** @return array<string,mixed>|\BlackCat\Database\Packages\Orders\Dto\OrderDto|null */
     public function getByTenantIdAndPublicOrderNo(int $tenantId, string $publicOrderNo, bool $asDto = false): array|\BlackCat\Database\Packages\Orders\Dto\OrderDto|null {
         return $this->getByUnique([ 'tenant_id' => $tenantId, 'public_order_no' => $publicOrderNo ], $asDto);
     }
