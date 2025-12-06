@@ -1,6 +1,7 @@
--- Auto-generated from schema-map-mysql.psd1 (map@62c9c93)
+-- Auto-generated from schema-map-mysql.yaml (map@sha1:5E62933580349BE7C623D119AC9D1301A62F03EF)
 -- engine: mysql
 -- table:  orders
+
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   tenant_id BIGINT UNSIGNED NOT NULL,
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS orders (
   INDEX idx_orders_tenant (tenant_id),
   INDEX idx_orders_tenant_user (tenant_id, user_id),
   UNIQUE KEY ux_orders_uuid_bin (uuid_bin),
+  UNIQUE KEY ux_orders_tenant_uuid_bin (tenant_id, uuid_bin),
   UNIQUE KEY ux_orders_tenant_public_no (tenant_id, public_order_no),
   UNIQUE KEY ux_orders_tenant_id (tenant_id, id),
   CONSTRAINT chk_orders_nonneg CHECK (subtotal >= 0 AND discount_total >= 0 AND tax_total >= 0 AND total >= 0),

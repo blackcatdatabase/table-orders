@@ -1,6 +1,7 @@
--- Auto-generated from schema-views-postgres.psd1 (map@62c9c93)
+-- Auto-generated from schema-views-postgres.yaml (map@sha1:EDC13878AE5F346E7EAD2CF0A484FEB7E68F6CDD)
 -- engine: postgres
 -- table:  orders
+
 -- Contract view for [orders]
 -- Hides encrypted_customer_blob; PG has native uuid.
 -- Adds uuid_text and uuid_hex.
@@ -17,8 +18,7 @@ SELECT
   user_id,
   status,
   encrypted_customer_blob_key_version,
-  encrypted_customer_blob,
-  UPPER(encode(encrypted_customer_blob,'hex')) AS encrypted_customer_blob_hex,
+  UPPER(encode(digest(encrypted_customer_blob,'sha256'),'hex'))::char(64) AS encrypted_customer_blob_hex,
   octet_length(encrypted_customer_blob) AS encrypted_customer_blob_len,
   encryption_meta,
   currency,
@@ -32,36 +32,3 @@ SELECT
   updated_at,
   version
 FROM orders;
-
--- Auto-generated from schema-views-postgres.psd1 (map@62c9c93)
--- engine: postgres
--- table:  orders_revenue_daily
--- Daily revenue (orders) and counts; refunds reported separately
-CREATE OR REPLACE VIEW vw_revenue_daily AS
-SELECT
-  date_trunc(''day'', created_at) AS day,
-  COUNT(*) FILTER (WHERE status IN (''paid'',''completed'')) AS paid_orders,
-  SUM(total) FILTER (WHERE status IN (''paid'',''completed'')) AS revenue_gross,
-  COUNT(*) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_orders,
-  SUM(total) FILTER (WHERE status IN (''failed'',''cancelled'')) AS lost_total
-FROM orders
-GROUP BY 1
-ORDER BY day DESC;
-
-
--- Auto-generated from schema-views-postgres.psd1 (map@62c9c93)
--- engine: postgres
--- table:  orders_funnel
--- Global funnel of orders
-CREATE OR REPLACE VIEW vw_orders_funnel AS
-SELECT
-  COUNT(*)                               AS orders_total,
-  COUNT(*) FILTER (WHERE status=''pending'')   AS pending,
-  COUNT(*) FILTER (WHERE status=''paid'')      AS paid,
-  COUNT(*) FILTER (WHERE status=''completed'') AS completed,
-  COUNT(*) FILTER (WHERE status=''failed'')    AS failed,
-  COUNT(*) FILTER (WHERE status=''cancelled'') AS cancelled,
-  COUNT(*) FILTER (WHERE status=''refunded'')  AS refunded,
-  ROUND(100.0 * COUNT(*) FILTER (WHERE status IN (''paid'',''completed'')) / GREATEST(COUNT(*),1), 2) AS payment_conversion_pct
-FROM orders;
-

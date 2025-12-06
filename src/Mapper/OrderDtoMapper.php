@@ -17,7 +17,7 @@ use BlackCat\Database\Support\DtoHydrator;
 final class OrderDtoMapper
 {
     /** @var array<string,string> Column -> DTO property */
-    private const COL_TO_PROP = [ 'tenant_id' => 'tenantId', 'uuid_bin' => 'uuidBin', 'public_order_no' => 'publicOrderNo', 'user_id' => 'userId', 'encrypted_customer_blob' => 'encryptedCustomerBlob', 'encrypted_customer_blob_key_version' => 'encryptedCustomerBlobKeyVersion', 'encryption_meta' => 'encryptionMeta', 'discount_total' => 'discountTotal', 'tax_total' => 'taxTotal', 'payment_method' => 'paymentMethod', 'created_at' => 'createdAt', 'updated_at' => 'updatedAt' ];
+    private const COL_TO_PROP = [ 'id' => 'id', 'tenant_id' => 'tenantId', 'uuid' => 'uuid', 'uuid_bin' => 'uuidBin', 'public_order_no' => 'publicOrderNo', 'user_id' => 'userId', 'status' => 'status', 'encrypted_customer_blob' => 'encryptedCustomerBlob', 'encrypted_customer_blob_key_version' => 'encryptedCustomerBlobKeyVersion', 'encryption_meta' => 'encryptionMeta', 'currency' => 'currency', 'metadata' => 'metadata', 'subtotal' => 'subtotal', 'discount_total' => 'discountTotal', 'tax_total' => 'taxTotal', 'total' => 'total', 'payment_method' => 'paymentMethod', 'created_at' => 'createdAt', 'updated_at' => 'updatedAt', 'version' => 'version' ];
 
     /** @var string[] */
     private const BOOL_COLS   = [];
@@ -39,13 +39,8 @@ final class OrderDtoMapper
 
     private static function tz(): DateTimeZone
     {
-        if (self::$tzObj instanceof DateTimeZone) {
-            return self::$tzObj;
-        }
-        try {
+        if (!(self::$tzObj instanceof DateTimeZone)) {
             self::$tzObj = new DateTimeZone(self::TZ);
-        } catch (\Throwable) {
-            self::$tzObj = new DateTimeZone('UTC');
         }
         return self::$tzObj;
     }

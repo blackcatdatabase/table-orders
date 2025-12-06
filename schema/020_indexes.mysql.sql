@@ -1,6 +1,7 @@
--- Auto-generated from schema-map-mysql.psd1 (map@62c9c93)
+-- Auto-generated from schema-map-mysql.yaml (map@sha1:5E62933580349BE7C623D119AC9D1301A62F03EF)
 -- engine: mysql
 -- table:  orders
+
 CREATE INDEX idx_orders_created_at ON orders (created_at);
 
 CREATE INDEX idx_orders_user_created ON orders (user_id, created_at);
