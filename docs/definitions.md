@@ -5,24 +5,24 @@ Orders lifecycle, totals, and encrypted customer blob.
 ## Columns
 | Column | Type | Null | Default | Description |
 | --- | --- | --- | --- | --- |
-| created_at | TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) | Creation timestamp (UTC). |
+| created_at | DATETIME(6) | NO | CURRENT_TIMESTAMP(6) | Creation timestamp (UTC). |
 | currency | CHAR(3) | NO |  | ISO 4217 currency code. |
-| discount_total | NUMERIC(12,2) | NO | 0 | Discount total. |
-| encrypted_customer_blob | BYTEA | YES |  | Encrypted PII/customer details. |
+| discount_total | DECIMAL(12,2) | NO | 0 | Discount total. |
+| encrypted_customer_blob | LONGBLOB | YES |  | Encrypted PII/customer details. |
 | encrypted_customer_blob_key_version | VARCHAR(64) | YES |  | Key version of encrypted blob. |
-| encryption_meta | JSONB | YES |  | JSON encryption metadata. |
+| encryption_meta | JSON | YES |  | JSON encryption metadata. |
 | id | BIGINT | NO |  | Surrogate primary key. |
-| metadata | JSONB | YES |  | JSON with auxiliary metadata. |
+| metadata | JSON | YES |  | JSON with auxiliary metadata. |
 | payment_method | VARCHAR(100) | YES |  | Selected payment method. |
 | public_order_no | VARCHAR(64) | YES |  | Human-friendly order number. |
-| status | TEXT | NO | pending | Order state. (enum: pending, paid, failed, cancelled, refunded, completed) |
-| subtotal | NUMERIC(12,2) | NO | 0 | Subtotal amount. |
-| tax_total | NUMERIC(12,2) | NO | 0 | Tax total. |
-| total | NUMERIC(12,2) | NO | 0 | Grand total. |
-| updated_at | TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) | Update timestamp (UTC). |
+| status | ENUM('pending','paid','failed','cancelled','refunded','completed') | NO | pending | Order state. (enum: pending, paid, failed, cancelled, refunded, completed) |
+| subtotal | DECIMAL(12,2) | NO | 0 | Subtotal amount. |
+| tax_total | DECIMAL(12,2) | NO | 0 | Tax total. |
+| total | DECIMAL(12,2) | NO | 0 | Grand total. |
+| updated_at | DATETIME(6) | NO | CURRENT_TIMESTAMP(6) | Update timestamp (UTC). |
 | user_id | BIGINT | YES |  | Customer (FK users.id), optional (guest checkout). |
 | uuid | CHAR(36) | NO |  | Unique external order id (UUID text). |
-| uuid_bin | BYTEA | YES |  | UUID binary form (unique, for compact lookups). |
+| uuid_bin | BINARY(16) | YES |  | UUID binary form (unique, for compact lookups). |
 
 ## Engine Details
 
@@ -96,15 +96,15 @@ Foreign keys:
 ## Views
 | View | Engine | Flags | File |
 | --- | --- | --- | --- |
-| vw_orders | mysql | algorithm=MERGE, security=INVOKER | [packages\orders\schema\040_views.mysql.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views.mysql.sql) |
-| vw_orders_funnel | mysql | algorithm=TEMPTABLE, security=INVOKER | [packages\orders\schema\040_views_joins.mysql.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.mysql.sql) |
-| vw_orders_payments_latest | mysql | algorithm=TEMPTABLE, security=INVOKER | [packages\orders\schema\040_views_joins.mysql.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.mysql.sql) |
-| vw_orders_user_summary | mysql | algorithm=TEMPTABLE, security=INVOKER | [packages\orders\schema\040_views_joins.mysql.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.mysql.sql) |
-| vw_orders_with_user | mysql | algorithm=TEMPTABLE, security=INVOKER | [packages\orders\schema\040_views_joins.mysql.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.mysql.sql) |
-| vw_revenue_daily | mysql | algorithm=TEMPTABLE, security=INVOKER | [packages\orders\schema\040_views_joins.mysql.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.mysql.sql) |
-| vw_orders | postgres |  | [packages\orders\schema\040_views.postgres.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views.postgres.sql) |
-| vw_orders_funnel | postgres |  | [packages\orders\schema\040_views_joins.postgres.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.postgres.sql) |
-| vw_orders_payments_latest | postgres |  | [packages\orders\schema\040_views_joins.postgres.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.postgres.sql) |
-| vw_orders_user_summary | postgres |  | [packages\orders\schema\040_views_joins.postgres.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.postgres.sql) |
-| vw_orders_with_user | postgres |  | [packages\orders\schema\040_views_joins.postgres.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.postgres.sql) |
-| vw_revenue_daily | postgres |  | [packages\orders\schema\040_views_joins.postgres.sql](https://github.com/blackcatacademy/blackcat-database/packages/orders/schema/040_views_joins.postgres.sql) |
+| vw_orders | mysql | algorithm=MERGE, security=INVOKER | [schema\040_views.mysql.sql](schema\040_views.mysql.sql) |
+| vw_orders_funnel | mysql | algorithm=TEMPTABLE, security=INVOKER | [schema\040_views_joins.mysql.sql](schema\040_views_joins.mysql.sql) |
+| vw_orders_payments_latest | mysql | algorithm=TEMPTABLE, security=INVOKER | [schema\040_views_joins.mysql.sql](schema\040_views_joins.mysql.sql) |
+| vw_orders_user_summary | mysql | algorithm=TEMPTABLE, security=INVOKER | [schema\040_views_joins.mysql.sql](schema\040_views_joins.mysql.sql) |
+| vw_orders_with_user | mysql | algorithm=TEMPTABLE, security=INVOKER | [schema\040_views_joins.mysql.sql](schema\040_views_joins.mysql.sql) |
+| vw_revenue_daily | mysql | algorithm=TEMPTABLE, security=INVOKER | [schema\040_views_joins.mysql.sql](schema\040_views_joins.mysql.sql) |
+| vw_orders | postgres |  | [schema\040_views.postgres.sql](schema\040_views.postgres.sql) |
+| vw_orders_funnel | postgres |  | [schema\040_views_joins.postgres.sql](schema\040_views_joins.postgres.sql) |
+| vw_orders_payments_latest | postgres |  | [schema\040_views_joins.postgres.sql](schema\040_views_joins.postgres.sql) |
+| vw_orders_user_summary | postgres |  | [schema\040_views_joins.postgres.sql](schema\040_views_joins.postgres.sql) |
+| vw_orders_with_user | postgres |  | [schema\040_views_joins.postgres.sql](schema\040_views_joins.postgres.sql) |
+| vw_revenue_daily | postgres |  | [schema\040_views_joins.postgres.sql](schema\040_views_joins.postgres.sql) |
