@@ -1,5 +1,24 @@
 -- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
+-- view:   orders_funnel
+
+CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_funnel AS
+SELECT
+  COUNT(*) AS orders_total,
+  SUM(CASE WHEN status = 'pending'   THEN 1 ELSE 0 END) AS pending,
+  SUM(CASE WHEN status = 'paid'      THEN 1 ELSE 0 END) AS paid,
+  SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+  SUM(CASE WHEN status = 'failed'    THEN 1 ELSE 0 END) AS failed,
+  SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled,
+  SUM(CASE WHEN status = 'refunded'  THEN 1 ELSE 0 END) AS refunded,
+  ROUND(
+    100.0 * SUM(CASE WHEN status IN ('paid','completed') THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0),
+    2
+  ) AS payment_conversion_pct
+FROM orders;
+
+-- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- engine: mysql
 -- view:   orders_payments_latest
 
 CREATE OR REPLACE ALGORITHM=TEMPTABLE SQL SECURITY INVOKER VIEW vw_orders_payments_latest AS
@@ -26,6 +45,7 @@ LEFT JOIN ranked_payments rp
   ON rp.tenant_id = o.tenant_id
  AND rp.order_id  = o.id
  AND rp.rn = 1;
+
 
 -- Auto-generated from joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
