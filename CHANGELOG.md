@@ -10,6 +10,7 @@
 - 2025-10-23: (umbrella) fix(umbrella): bump packages submodules after PHP codegen — @[7f780dd]
 
 #### Chore
+- 2025-12-09: Further debugging and ERD optimalization 1/* — @[6aa9154]
 - 2025-12-09: Customization of ERD, AUDIT, LF normalization — @[71a10fa]
 - 2025-12-09: Debugged scripts, regenerated .md, edited README — @[0cfd18a]
 - 2025-12-08: Refactored scripts, cleanup — @[359e924]
