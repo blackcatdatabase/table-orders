@@ -5,24 +5,24 @@ Orders lifecycle, totals, and encrypted customer blob.
 ## Columns
 | Column | Type | Null | Default | Description |
 | --- | --- | --- | --- | --- |
-| created_at | mysql: DATETIME(6) / postgres: TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) | Creation timestamp (UTC). |
-| currency | CHAR(3) | NO |  | ISO 4217 currency code. |
-| discount_total | mysql: DECIMAL(12,2) / postgres: NUMERIC(12,2) | NO | 0 | Discount total. |
+| id | BIGINT | NO |  | Surrogate primary key. |
+| uuid | CHAR(36) | NO |  | Unique external order id (UUID text). |
+| uuid_bin | mysql: BINARY(16) / postgres: BYTEA | YES |  | UUID binary form (unique, for compact lookups). |
+| public_order_no | VARCHAR(64) | YES |  | Human-friendly order number. |
+| user_id | BIGINT | YES |  | Customer (FK users.id), optional (guest checkout). |
+| status | mysql: ENUM('pending','paid','failed','cancelled','refunded','completed') / postgres: TEXT | NO | pending | Order state. (enum: pending, paid, failed, cancelled, refunded, completed) |
 | encrypted_customer_blob | mysql: LONGBLOB / postgres: BYTEA | YES |  | Encrypted PII/customer details. |
 | encrypted_customer_blob_key_version | VARCHAR(64) | YES |  | Key version of encrypted blob. |
 | encryption_meta | mysql: JSON / postgres: JSONB | YES |  | JSON encryption metadata. |
-| id | BIGINT | NO |  | Surrogate primary key. |
+| currency | CHAR(3) | NO |  | ISO 4217 currency code. |
 | metadata | mysql: JSON / postgres: JSONB | YES |  | JSON with auxiliary metadata. |
-| payment_method | VARCHAR(100) | YES |  | Selected payment method. |
-| public_order_no | VARCHAR(64) | YES |  | Human-friendly order number. |
-| status | mysql: ENUM('pending','paid','failed','cancelled','refunded','completed') / postgres: TEXT | NO | pending | Order state. (enum: pending, paid, failed, cancelled, refunded, completed) |
 | subtotal | mysql: DECIMAL(12,2) / postgres: NUMERIC(12,2) | NO | 0 | Subtotal amount. |
+| discount_total | mysql: DECIMAL(12,2) / postgres: NUMERIC(12,2) | NO | 0 | Discount total. |
 | tax_total | mysql: DECIMAL(12,2) / postgres: NUMERIC(12,2) | NO | 0 | Tax total. |
 | total | mysql: DECIMAL(12,2) / postgres: NUMERIC(12,2) | NO | 0 | Grand total. |
+| payment_method | VARCHAR(100) | YES |  | Selected payment method. |
+| created_at | mysql: DATETIME(6) / postgres: TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) | Creation timestamp (UTC). |
 | updated_at | mysql: DATETIME(6) / postgres: TIMESTAMPTZ(6) | NO | CURRENT_TIMESTAMP(6) | Update timestamp (UTC). |
-| user_id | BIGINT | YES |  | Customer (FK users.id), optional (guest checkout). |
-| uuid | CHAR(36) | NO |  | Unique external order id (UUID text). |
-| uuid_bin | mysql: BINARY(16) / postgres: BYTEA | YES |  | UUID binary form (unique, for compact lookups). |
 
 ## Engine Details
 
