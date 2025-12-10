@@ -1,5 +1,25 @@
 -- Auto-generated from joins-postgres.yaml (map@sha1:29CF395A3A4C8964482083733F8E613ABFBEF5CC)
 -- engine: postgres
+-- view:   orders_funnel
+
+-- Global funnel of orders
+CREATE OR REPLACE VIEW vw_orders_funnel AS
+SELECT
+  COUNT(*) AS orders_total,
+  COUNT(*) FILTER (WHERE status = $$pending$$)   AS pending,
+  COUNT(*) FILTER (WHERE status = $$paid$$)      AS paid,
+  COUNT(*) FILTER (WHERE status = $$completed$$) AS completed,
+  COUNT(*) FILTER (WHERE status = $$failed$$)    AS failed,
+  COUNT(*) FILTER (WHERE status = $$cancelled$$) AS cancelled,
+  COUNT(*) FILTER (WHERE status = $$refunded$$)  AS refunded,
+  ROUND(
+    100.0 * COUNT(*) FILTER (WHERE status IN ($$paid$$,$$completed$$)) / GREATEST(COUNT(*),1),
+    2
+  ) AS payment_conversion_pct
+FROM orders;
+
+-- Auto-generated from joins-postgres.yaml (map@sha1:29CF395A3A4C8964482083733F8E613ABFBEF5CC)
+-- engine: postgres
 -- view:   orders_payments_latest
 
 -- Orders with latest payment snapshot
@@ -24,6 +44,7 @@ LEFT JOIN LATERAL (
   ORDER BY p.created_at DESC, p.id DESC
   LIMIT 1
 ) p ON TRUE;
+
 
 -- Auto-generated from joins-postgres.yaml (map@sha1:29CF395A3A4C8964482083733F8E613ABFBEF5CC)
 -- engine: postgres
