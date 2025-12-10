@@ -114,11 +114,13 @@ graph LR
 _No engine differences detected._
 
 ## Constraints Snapshot
-- `created_at` – default=CURRENT_TIMESTAMP(6)
-- `discount_total` – default=0
 - `status` – default=pending, enum
 - `subtotal` – default=0
+- `discount_total` – default=0
 - `tax_total` – default=0
+- `total` – default=0
+- `created_at` – default=CURRENT_TIMESTAMP(6)
+- `updated_at` – default=CURRENT_TIMESTAMP(6)
 
 ## Schema Files
 | File | Engine |
