@@ -41,11 +41,11 @@ final class Criteria extends BaseCriteria
         return [ 'uuid', 'public_order_no', 'encrypted_customer_blob_key_version', 'currency', 'payment_method' ];
     }
 
-/** Columns allowed in ORDER BY (falls back to filterable() when empty). */
-protected function sortable(): array
-{
-    return [ 'id', 'tenant_id', 'uuid', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob_key_version', 'currency', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at', 'version' ];
-}
+    /** Columns allowed in ORDER BY (falls back to filterable() when empty). */
+    protected function sortable(): array
+    {
+        return [ 'id', 'tenant_id', 'uuid', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob_key_version', 'currency', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method', 'created_at', 'updated_at', 'version' ];
+    }
 
     /**
      * Whitelist of joinable entities (for safe ->join() usage):
