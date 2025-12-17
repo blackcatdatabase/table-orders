@@ -252,6 +252,7 @@ use OrderByTools, PkTools, RepositoryHelpers;
           ));
           if (!$rows) { return 0; }
 
+          /** @var list<string> $updCols */
           $updCols = [ 'uuid_bin', 'public_order_no', 'user_id', 'status', 'encrypted_customer_blob', 'encrypted_customer_blob_key_version', 'encryption_meta', 'currency', 'metadata', 'subtotal', 'discount_total', 'tax_total', 'total', 'payment_method' ];
           if ($updCols && $soft && !in_array($soft, $updCols, true)) { $updCols[] = $soft; }
 
