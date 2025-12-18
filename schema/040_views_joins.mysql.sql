@@ -1,4 +1,4 @@
--- Auto-generated from core\joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- Auto-generated from core/joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_funnel
 
@@ -17,7 +17,7 @@ SELECT
   ) AS payment_conversion_pct
 FROM orders;
 
--- Auto-generated from core\joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- Auto-generated from core/joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_payments_latest
 
@@ -47,7 +47,7 @@ LEFT JOIN ranked_payments rp
  AND rp.rn = 1;
 
 
--- Auto-generated from core\joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- Auto-generated from core/joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_user_summary
 
@@ -61,7 +61,7 @@ LEFT JOIN orders o ON o.user_id = u.id
 GROUP BY u.id;
 
 
--- Auto-generated from core\joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- Auto-generated from core/joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   orders_with_user
 
@@ -80,7 +80,7 @@ FROM orders o
 LEFT JOIN users u ON u.id = o.user_id;
 
 
--- Auto-generated from core\joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
+-- Auto-generated from core/joins-mysql.yaml (map@sha1:DA70105A5B799F72A56FEAB71A5171F946A770D2)
 -- engine: mysql
 -- view:   revenue_daily
 
