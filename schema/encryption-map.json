@@ -1,0 +1,73 @@
+{
+  "tables": {
+    "orders": {
+      "columns": {
+        "created_at": {
+          "strategy": "passthrough"
+        },
+        "currency": {
+          "strategy": "passthrough"
+        },
+        "discount_total": {
+          "strategy": "passthrough"
+        },
+        "encrypted_customer_blob": {
+          "context": "db.vault.orders.encrypted_customer_blob",
+          "encryption_meta_column": "encryption_meta",
+          "key_version_column": "encrypted_customer_blob_key_version",
+          "strategy": "encrypt",
+          "write_encryption_meta": true,
+          "write_key_version": true
+        },
+        "encrypted_customer_blob_key_version": {
+          "strategy": "passthrough"
+        },
+        "encryption_meta": {
+          "strategy": "passthrough"
+        },
+        "id": {
+          "strategy": "passthrough"
+        },
+        "metadata": {
+          "strategy": "passthrough"
+        },
+        "payment_method": {
+          "strategy": "passthrough"
+        },
+        "public_order_no": {
+          "strategy": "passthrough"
+        },
+        "status": {
+          "strategy": "passthrough"
+        },
+        "subtotal": {
+          "strategy": "passthrough"
+        },
+        "tax_total": {
+          "strategy": "passthrough"
+        },
+        "tenant_id": {
+          "strategy": "passthrough"
+        },
+        "total": {
+          "strategy": "passthrough"
+        },
+        "updated_at": {
+          "strategy": "passthrough"
+        },
+        "user_id": {
+          "strategy": "passthrough"
+        },
+        "uuid": {
+          "strategy": "passthrough"
+        },
+        "uuid_bin": {
+          "strategy": "passthrough"
+        },
+        "version": {
+          "strategy": "passthrough"
+        }
+      }
+    }
+  }
+}
